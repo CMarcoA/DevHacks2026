@@ -1,8 +1,15 @@
 
 import { OpenAI } from 'openai';
-const openai = new OpenAI();
 
 export async function processInput(audioFile) {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not set.");
+  }
+
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
   // 1. Whisper Transcription
   const transcription = await openai.audio.transcriptions.create({
     file: audioFile,

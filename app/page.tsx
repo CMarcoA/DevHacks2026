@@ -16,6 +16,7 @@ export default function Home() {
   const [capturePhase, setCapturePhase] = useState<1 | 2 | 3>(1);
   const [selectedCaptureProjectId, setSelectedCaptureProjectId] = useState("");
   const [captureCheckpointName, setCaptureCheckpointName] = useState("");
+  const [captureAudioBlob, setCaptureAudioBlob] = useState<Blob | null>(null);
 
   const buildId = (prefix: string): string =>
     `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
@@ -41,11 +42,51 @@ export default function Home() {
   const openCapturePopup = () => {
     setCapturePhase(1);
     setCaptureModalOpen(true);
+    setCaptureAudioBlob(null);
   };
 
   const closeCapturePopup = () => {
     setCaptureModalOpen(false);
     setCapturePhase(1);
+    setCaptureAudioBlob(null);
+  };
+
+  const finalizeCaptureAudio = async (audioBlobOverride?: Blob) => {
+    const blobToSave = audioBlobOverride ?? captureAudioBlob;
+    if (!blobToSave) return;
+
+    setCapturePhase(3);
+
+    const extension = blobToSave.type.includes("mp3") ? "mp3" : "webm";
+    const audioFile = new File(
+      [blobToSave],
+      `capture-${new Date().toISOString().replace(/[:.]/g, "-")}.${extension}`,
+      { type: blobToSave.type || "audio/webm" }
+    );
+
+    try {
+      const formData = new FormData();
+      formData.append("file", audioFile);
+
+      const response = await fetch("/api/save-captured-audio", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        const message =
+          payload && typeof payload.error === "string"
+            ? payload.error
+            : `Failed to save audio (${response.status})`;
+        throw new Error(message);
+      }
+
+      await response.json();
+    } catch (error) {
+      console.error("Could not save captured audio:", error);
+      alert("Audio was captured but could not be saved into audioFiles.");
+    }
   };
 
   return (
@@ -123,15 +164,15 @@ export default function Home() {
         open={captureModalOpen && capturePhase === 2}
         onBack={() => setCapturePhase(1)}
         onClose={closeCapturePopup}
-        onStartRecording={() => {
-          // Placeholder until voice capture is connected.
+        onAudioCaptured={(audioBlob) => {
+          setCaptureAudioBlob(audioBlob);
+          void finalizeCaptureAudio(audioBlob);
         }}
-        onFinish={() => setCapturePhase(3)}
+        onRecordingCompleted={() => {
+          setCapturePhase(3);
+        }}
       />
-      <CapturePopupPhase3
-        open={captureModalOpen && capturePhase === 3}
-        onClose={closeCapturePopup}
-      />
+      <CapturePopupPhase3 open={captureModalOpen && capturePhase === 3} onClose={closeCapturePopup} />
     </div>
   );
 }

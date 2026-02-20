@@ -1,4 +1,4 @@
-// app/api/process-voice/route.js
+// app/api/process-voice-ai/route.ts
 import { processInput } from '@/backend/openai';
 import { project } from '@/backend/data';
 
