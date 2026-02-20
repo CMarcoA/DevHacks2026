@@ -6,7 +6,7 @@ const memberTaskMap = (rows: Array<{ memberId: ID; tasks: TasksByMember[ID] }>):
 export const seedProjects: Project[] = [
   {
     id: "project-1",
-    name: "PROJECT_1",
+    name: "The Bigger Bang Project",
     members: [
       { id: "claudius", name: "Claudius Marco", position: "Team Lead" },
       { id: "john", name: "Johny Chauhari", position: "Frontend Developer" },
@@ -86,7 +86,7 @@ export const seedProjects: Project[] = [
   },
   {
     id: "project-2",
-    name: "COMP-2280-A02-A03 - Introduction to Computer Systems",
+    name: "The Big Bang Project",
     members: [
       { id: "amy", name: "Amy Stone", position: "Backend Developer" },
       { id: "kevin", name: "Kevin Pike", position: "QA Engineer" },
