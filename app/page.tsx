@@ -11,6 +11,8 @@ export default function Home() {
   const [teammateList, setTeammateList] = useState<Member[]>(initialTeammateList);
   const [newProjectPopupOpen, setNewProjectPopupOpen] = useState(false);
   const [captureModalOpen, setCaptureModalOpen] = useState(false);
+  const [selectedCaptureProjectId, setSelectedCaptureProjectId] = useState("");
+  const [captureCheckpointName, setCaptureCheckpointName] = useState("");
 
   const buildId = (prefix: string): string =>
     `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
@@ -97,6 +99,11 @@ export default function Home() {
       <CapturePopupPhase1
         open={captureModalOpen}
         onClose={() => setCaptureModalOpen(false)}
+        projectList={projectList}
+        selectedProjectId={selectedCaptureProjectId}
+        checkpointName={captureCheckpointName}
+        onSelectedProjectChange={setSelectedCaptureProjectId}
+        onCheckpointNameChange={setCaptureCheckpointName}
       />
     </div>
   );
