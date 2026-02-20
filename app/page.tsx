@@ -2,6 +2,7 @@
 
 import { CapturePopupPhase1 } from "@/components/capturePage/capturePopupPhase1";
 import { CapturePopupPhase2 } from "@/components/capturePage/capturePopupPhase2";
+import { CapturePopupPhase3 } from "@/components/capturePage/capturePopupPhase3";
 import { NewProjectPopup } from "@/components/homePage/newProjectPopup";
 import { initialProjectList, initialTeammateList } from "@/projectData/homeProjectData";
 import type { Member, NewProjectInput, Project } from "@/types/projectTypes";
@@ -12,7 +13,7 @@ export default function Home() {
   const [teammateList, setTeammateList] = useState<Member[]>(initialTeammateList);
   const [newProjectPopupOpen, setNewProjectPopupOpen] = useState(false);
   const [captureModalOpen, setCaptureModalOpen] = useState(false);
-  const [capturePhase, setCapturePhase] = useState<1 | 2>(1);
+  const [capturePhase, setCapturePhase] = useState<1 | 2 | 3>(1);
   const [selectedCaptureProjectId, setSelectedCaptureProjectId] = useState("");
   const [captureCheckpointName, setCaptureCheckpointName] = useState("");
 
@@ -125,6 +126,11 @@ export default function Home() {
         onStartRecording={() => {
           // Placeholder until voice capture is connected.
         }}
+        onFinish={() => setCapturePhase(3)}
+      />
+      <CapturePopupPhase3
+        open={captureModalOpen && capturePhase === 3}
+        onClose={closeCapturePopup}
       />
     </div>
   );

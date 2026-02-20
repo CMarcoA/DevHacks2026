@@ -7,6 +7,7 @@ type CapturePopupPhase2Props = {
   onClose: () => void;
   onBack: () => void;
   onStartRecording: () => void;
+  onFinish: () => void;
 };
 
 export function CapturePopupPhase2({
@@ -14,6 +15,7 @@ export function CapturePopupPhase2({
   onClose,
   onBack,
   onStartRecording,
+  onFinish,
 }: CapturePopupPhase2Props) {
   return (
     <PopupTemplate open={open} onClose={onClose} title="What's on your mind?">
@@ -39,10 +41,10 @@ export function CapturePopupPhase2({
           </button>
           <button
             type="button"
-            onClick={onClose}
+            onClick={onFinish}
             className="rounded bg-[#127ea9] px-4 py-2 text-sm font-semibold text-white"
           >
-            Close
+            Finish
           </button>
         </div>
       </div>
