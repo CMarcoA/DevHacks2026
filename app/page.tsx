@@ -1,6 +1,7 @@
 "use client";
 
 import { CapturePopupPhase1 } from "@/components/capturePage/capturePopupPhase1";
+import { CapturePopupPhase2 } from "@/components/capturePage/capturePopupPhase2";
 import { NewProjectPopup } from "@/components/homePage/newProjectPopup";
 import { initialProjectList, initialTeammateList } from "@/projectData/homeProjectData";
 import type { Member, NewProjectInput, Project } from "@/types/projectTypes";
@@ -11,6 +12,7 @@ export default function Home() {
   const [teammateList, setTeammateList] = useState<Member[]>(initialTeammateList);
   const [newProjectPopupOpen, setNewProjectPopupOpen] = useState(false);
   const [captureModalOpen, setCaptureModalOpen] = useState(false);
+  const [capturePhase, setCapturePhase] = useState<1 | 2>(1);
   const [selectedCaptureProjectId, setSelectedCaptureProjectId] = useState("");
   const [captureCheckpointName, setCaptureCheckpointName] = useState("");
 
@@ -35,6 +37,16 @@ export default function Home() {
     setTeammateList((prev) => [...prev, ...members]);
   };
 
+  const openCapturePopup = () => {
+    setCapturePhase(1);
+    setCaptureModalOpen(true);
+  };
+
+  const closeCapturePopup = () => {
+    setCaptureModalOpen(false);
+    setCapturePhase(1);
+  };
+
   return (
     <div className="flex min-h-screen bg-[#f4f6f8] text-slate-900">
       <aside className="w-48 border-r border-slate-200 bg-[#e8eef2] p-3">
@@ -48,7 +60,7 @@ export default function Home() {
           </button>
           <button
             type="button"
-            onClick={() => setCaptureModalOpen(true)}
+            onClick={openCapturePopup}
             className="w-full bg-[#0f7ea9] px-3 py-2 text-left text-sm font-medium text-white"
           >
             capture_button
@@ -97,13 +109,22 @@ export default function Home() {
         onCreateProject={handleCreateProject}
       />
       <CapturePopupPhase1
-        open={captureModalOpen}
-        onClose={() => setCaptureModalOpen(false)}
+        open={captureModalOpen && capturePhase === 1}
+        onClose={closeCapturePopup}
+        onNext={() => setCapturePhase(2)}
         projectList={projectList}
         selectedProjectId={selectedCaptureProjectId}
         checkpointName={captureCheckpointName}
         onSelectedProjectChange={setSelectedCaptureProjectId}
         onCheckpointNameChange={setCaptureCheckpointName}
+      />
+      <CapturePopupPhase2
+        open={captureModalOpen && capturePhase === 2}
+        onBack={() => setCapturePhase(1)}
+        onClose={closeCapturePopup}
+        onStartRecording={() => {
+          // Placeholder until voice capture is connected.
+        }}
       />
     </div>
   );
