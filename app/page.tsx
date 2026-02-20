@@ -1,17 +1,58 @@
-import { seedProjects } from "@/mock/projectSampleData";
+"use client";
+
+import { CapturePopupPhase1 } from "@/components/capturePage/capturePopupPhase1";
+import { NewProjectPopup } from "@/components/homePage/newProjectPopup";
+import { initialProjectList, initialTeammateList } from "@/projectData/homeProjectData";
+import type { Member, NewProjectInput, Project } from "@/types/projectTypes";
+import { useState } from "react";
 
 export default function Home() {
+  const [projectList, setProjectList] = useState<Project[]>(initialProjectList);
+  const [teammateList, setTeammateList] = useState<Member[]>(initialTeammateList);
+  const [newProjectPopupOpen, setNewProjectPopupOpen] = useState(false);
+  const [captureModalOpen, setCaptureModalOpen] = useState(false);
+
+  const buildId = (prefix: string): string =>
+    `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+
+  const handleCreateProject = (payload: NewProjectInput) => {
+    const members: Member[] = payload.members.map((member) => ({
+      id: buildId("member"),
+      name: member.name,
+      position: member.position,
+    }));
+
+    const project: Project = {
+      id: buildId("project"),
+      name: payload.name,
+      members,
+      checkpoints: [],
+    };
+
+    setProjectList((prev) => [project, ...prev]);
+    setTeammateList((prev) => [...prev, ...members]);
+  };
+
   return (
     <div className="flex min-h-screen bg-[#f4f6f8] text-slate-900">
       <aside className="w-48 border-r border-slate-200 bg-[#e8eef2] p-3">
         <div className="space-y-2">
-          <button className="w-full bg-[#0f7ea9] px-3 py-2 text-left text-sm font-medium text-white">
+          <button
+            type="button"
+            onClick={() => setNewProjectPopupOpen(true)}
+            className="w-full bg-[#0f7ea9] px-3 py-2 text-left text-sm font-medium text-white"
+          >
             New Project
           </button>
-          <button className="w-full bg-[#0f7ea9] px-3 py-2 text-left text-sm font-medium text-white">
+          <button
+            type="button"
+            onClick={() => setCaptureModalOpen(true)}
+            className="w-full bg-[#0f7ea9] px-3 py-2 text-left text-sm font-medium text-white"
+          >
             capture_button
           </button>
         </div>
+        <p className="mt-4 text-xs text-slate-600">Teammates tracked: {teammateList.length}</p>
       </aside>
 
       <main className="w-full px-16 py-10">
@@ -23,7 +64,7 @@ export default function Home() {
           <h1 className="mb-6 text-5xl font-medium text-slate-900">Project List</h1>
 
           <div className="space-y-4">
-            {seedProjects.map((project) => {
+            {projectList.map((project) => {
               const checkpointsCount = project.checkpoints.length;
               const label = checkpointsCount === 1 ? "assessment" : "assessments";
 
@@ -47,6 +88,16 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      <NewProjectPopup
+        open={newProjectPopupOpen}
+        onClose={() => setNewProjectPopupOpen(false)}
+        onCreateProject={handleCreateProject}
+      />
+      <CapturePopupPhase1
+        open={captureModalOpen}
+        onClose={() => setCaptureModalOpen(false)}
+      />
     </div>
   );
 }
