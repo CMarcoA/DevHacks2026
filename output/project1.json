@@ -1,0 +1,23 @@
+{
+  "projectId": 1,
+  "teamMembers": [
+    "Marco",
+    "Patrick"
+  ],
+  "checkpoints": [
+    {
+      "assignedTo": "Marco",
+      "todos": [
+        "finishing the first phase",
+        "buying food for Patrick"
+      ]
+    },
+    {
+      "assignedTo": "Patrick",
+      "todos": [
+        "finishing the second phase",
+        "fixing his code"
+      ]
+    }
+  ]
+}
