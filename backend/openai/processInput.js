@@ -4,7 +4,7 @@ import { OpenAI } from 'openai';
 export default async function processInput(audioFile) {
   const openai = new OpenAI();
   
-  // using the 4o-mini-transcribe model to transcribe the audio 
+  // using the 4o-mini-transcribe model to transcribe the audio file
   const transcription = await openai.audio.transcriptions.create({
     file: audioFile,
     model: "gpt-4o-mini-transcribe",
