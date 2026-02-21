@@ -20,6 +20,7 @@ export type Checkpoint = {
   name: string;
   createdAt: string;
   tasksByMember: TasksByMember;
+  outputFile?: string | null;
 };
 
 export type Project = {

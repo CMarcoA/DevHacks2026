@@ -1,30 +1,39 @@
 import dotenv from "dotenv";
 dotenv.config();
-import fs from 'fs';
-import path from 'path';
-import processInput from './openai/processInput.js'
+import fs from "fs";
+import path from "path";
+import processInput from "./openai/processInput.js";
 
 // this is the function that will take the input file and put into the AI 
 // to be processed and save as a json file with project(projectID).json name
-export async function saveJson(input) {
+export async function saveJson(input, context = null) {
   //const inputPath = path.join(process.cwd(), 'input');
-  const outputPath = path.join(process.cwd(), 'output');
+  const outputPath = path.join(process.cwd(), "output");
+
+  if (!fs.existsSync(outputPath)) {
+    fs.mkdirSync(outputPath, { recursive: true });
+  }
 
   //const input = path.join(inputPath, 'input2.m4a');
 
   try {
     console.log(`Processing: ${input}`);
     const audioStream = fs.createReadStream(input);
-    const json = await processInput(audioStream);
-    const id = json.projectId;
+    const json = await processInput(audioStream, context);
+    const rawId =
+      typeof json?.projectId === "string" || typeof json?.projectId === "number"
+        ? String(json.projectId).trim()
+        : "";
+    const fallbackId = `unknown-${new Date().toISOString().replace(/[:.]/g, "-")}`;
+    const id = rawId || fallbackId;
     const output = `project${id}.json`;
-    fs.writeFileSync(
-      path.join(outputPath, output),
-      JSON.stringify(json, null, 2)
-    );
-    console.log("the file has been saved");
+    const outputFilePath = path.join(outputPath, output);
+    fs.writeFileSync(outputFilePath, JSON.stringify(json, null, 2));
+    console.log(`the file has been saved: ${outputFilePath}`);
+    return { json, outputFile: output };
   } catch (error) {
-    console.log("error processing file");
+    console.error("error processing file", error);
+    throw error;
   }
 }
 
@@ -65,5 +74,3 @@ export function overwriteTask(projectId, memberName, newTodos) {
     return;
   }
 }
-
-overwriteTask(1, "Marco", "buy food for patrick");
