@@ -1,0 +1,28 @@
+.app-sidebar {
+  width: 12rem;
+  border-right: 1px solid #e2e8f0;
+  background: #e8eef2;
+  padding: 0.75rem;
+}
+
+.app-sidebar-actions {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.app-sidebar-action-button {
+  width: 100%;
+  border: none;
+  background: #0f7ea9;
+  color: #fff;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+}
+
+.app-sidebar-meta {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: #475569;
+}
