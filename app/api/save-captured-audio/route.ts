@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import {saveJson} from "../../../backend/logic.js";
 
 export const runtime = "nodejs";
 
@@ -25,6 +26,8 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     await writeFile(outputPath, Buffer.from(bytes));
 
+    await saveJson(outputPath);
+    
     return NextResponse.json({
       ok: true,
       fileName: safeName,
