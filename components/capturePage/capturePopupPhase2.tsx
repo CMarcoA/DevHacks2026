@@ -2,6 +2,7 @@
 
 import { PopupTemplate } from "@/components/ui/popupTemplate";
 import { useEffect, useRef, useState } from "react";
+import styles from "./capturePopupPhase2.module.css";
 
 type CapturePopupPhase2Props = {
   open: boolean;
@@ -100,24 +101,24 @@ export function CapturePopupPhase2({
 
   return (
     <PopupTemplate open={open} onClose={onClose} title="What's on your mind?">
-      <div className="space-y-8 py-2 text-center">
+      <div className={styles.content}>
         <button
           type="button"
           onClick={toggleRecording}
-          className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-slate-700 text-6xl text-white hover:bg-slate-800"
+          className={styles.micButton}
           aria-label="Start voice recording"
         >
           🎤
         </button>
 
-        <p className="text-sm text-slate-700">{helperText}</p>
+        <p className={styles.helperText}>{helperText}</p>
 
-        <div className="flex justify-end gap-3">
+        <div className={styles.actions}>
           <button
             type="button"
             onClick={onBack}
             disabled={recordingState === "recording"}
-            className="rounded px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+            className={styles.backButton}
           >
             Back
           </button>

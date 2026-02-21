@@ -2,6 +2,7 @@
 
 import { PopupTemplate } from "@/components/ui/popupTemplate";
 import type { Project } from "@/types/projectTypes";
+import styles from "./capturePopupPhase1.module.css";
 
 type CapturePopupPhase1Props = {
   open: boolean;
@@ -28,11 +29,11 @@ export function CapturePopupPhase1({
 
   return (
     <PopupTemplate open={open} onClose={onClose} title="Choose Project to add checkpoint">
-      <div className="space-y-4">
+      <div className={styles.content}>
         <select
           value={selectedProjectId}
           onChange={(e) => onSelectedProjectChange(e.target.value)}
-          className="w-full rounded-full bg-slate-200 px-4 py-2 text-sm text-slate-800 outline-none ring-[#127ea9] focus:ring-2"
+          className={styles.projectSelect}
         >
           <option value="">Project List</option>
           {projectList.map((project) => (
@@ -46,22 +47,18 @@ export function CapturePopupPhase1({
           value={checkpointName}
           onChange={(e) => onCheckpointNameChange(e.target.value)}
           placeholder="Checkpoint name:"
-          className="w-full rounded-full bg-slate-200 px-4 py-2 text-sm text-slate-800 outline-none ring-[#127ea9] focus:ring-2"
+          className={styles.checkpointInput}
         />
 
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
-          >
+        <div className={styles.actions}>
+          <button type="button" onClick={onClose} className={styles.closeButton}>
             Close
           </button>
           <button
             type="button"
             onClick={onNext}
             disabled={!canProceed}
-            className="rounded bg-[#127ea9] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className={styles.nextButton}
           >
             Next
           </button>
