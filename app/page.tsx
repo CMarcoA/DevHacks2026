@@ -4,22 +4,52 @@ import { CapturePopupPhase1 } from "@/components/capturePage/capturePopupPhase1"
 import { CapturePopupPhase2 } from "@/components/capturePage/capturePopupPhase2";
 import { CapturePopupPhase3 } from "@/components/capturePage/capturePopupPhase3";
 import { NewProjectPopup } from "@/components/homePage/newProjectPopup";
+import { ProjectCheckpointExplorer } from "@/components/homePage/projectCheckpointExplorer";
 import { AppSidebar } from "@/components/ui/appSidebar";
-import { initialProjectList, initialTeammateList } from "@/projectData/homeProjectData";
+import {
+  getTeammatesFromProjects,
+  PROJECTS_STORAGE_KEY,
+  loadProjectsFromStorage,
+  saveProjectsToStorage,
+} from "@/projectData/projectPersistence";
 import type { Member, NewProjectInput, Project } from "@/types/projectTypes";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function Home() {
   const router = useRouter();
-  const [projectList, setProjectList] = useState<Project[]>(initialProjectList);
-  const [teammateList, setTeammateList] = useState<Member[]>(initialTeammateList);
+  const [projectList, setProjectList] = useState<Project[]>(() => loadProjectsFromStorage());
   const [newProjectPopupOpen, setNewProjectPopupOpen] = useState(false);
   const [captureModalOpen, setCaptureModalOpen] = useState(false);
   const [capturePhase, setCapturePhase] = useState<1 | 2 | 3>(1);
   const [selectedCaptureProjectId, setSelectedCaptureProjectId] = useState("");
   const [captureCheckpointName, setCaptureCheckpointName] = useState("");
   const [captureAudioBlob, setCaptureAudioBlob] = useState<Blob | null>(null);
+  const [capturedCheckpointName, setCapturedCheckpointName] = useState("");
+  const [captureCreatedTarget, setCaptureCreatedTarget] = useState<{
+    projectId: string;
+    checkpointId: string;
+    checkpointName: string;
+  } | null>(null);
+  const teammateList = useMemo<Member[]>(() => getTeammatesFromProjects(projectList), [projectList]);
+
+  useEffect(() => {
+    setProjectList(loadProjectsFromStorage());
+  }, []);
+
+  useEffect(() => {
+    saveProjectsToStorage(projectList);
+  }, [projectList]);
+
+  useEffect(() => {
+    const syncFromStorage = (event: StorageEvent) => {
+      if (event.key === PROJECTS_STORAGE_KEY) {
+        setProjectList(loadProjectsFromStorage());
+      }
+    };
+    window.addEventListener("storage", syncFromStorage);
+    return () => window.removeEventListener("storage", syncFromStorage);
+  }, []);
 
   const buildId = (prefix: string): string =>
     `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
@@ -39,19 +69,21 @@ export default function Home() {
     };
 
     setProjectList((prev) => [project, ...prev]);
-    setTeammateList((prev) => [...prev, ...members]);
   };
 
   const openCapturePopup = () => {
     setCapturePhase(1);
     setCaptureModalOpen(true);
     setCaptureAudioBlob(null);
+    setCaptureCreatedTarget(null);
   };
 
   const closeCapturePopup = () => {
     setCaptureModalOpen(false);
     setCapturePhase(1);
     setCaptureAudioBlob(null);
+    setCapturedCheckpointName("");
+    setCaptureCreatedTarget(null);
   };
 
   const finalizeCaptureAudio = async (audioBlobOverride?: Blob) => {
@@ -86,28 +118,68 @@ export default function Home() {
       }
 
       await response.json();
+      setCapturedCheckpointName(captureCheckpointName.trim());
     } catch (error) {
       console.error("Could not save captured audio:", error);
       alert("Audio was captured but could not be saved into audioFiles.");
     }
   };
 
-  const openEditFromCapture = () => {
-    if (!selectedCaptureProjectId) return;
-
-    const project = projectList.find((item) => item.id === selectedCaptureProjectId);
-    if (!project) return;
-
-    const firstCheckpointId = project.checkpoints[0]?.id;
-    if (firstCheckpointId) {
-      router.push(`/edit/${project.id}/${firstCheckpointId}`);
-      return;
+  const createCheckpointFromCapture = () => {
+    if (captureCreatedTarget) {
+      return captureCreatedTarget;
     }
 
-    const checkpointName = captureCheckpointName.trim() || "New Checkpoint";
-    router.push(
-      `/edit/${project.id}/draft?checkpointName=${encodeURIComponent(checkpointName)}`
+    if (!selectedCaptureProjectId) return null;
+
+    const project = projectList.find((item) => item.id === selectedCaptureProjectId);
+    if (!project) return null;
+
+    const targetName = (capturedCheckpointName || captureCheckpointName).trim();
+    if (!targetName) return null;
+    const checkpointId = `checkpoint-${Math.random().toString(36).slice(2, 10)}`;
+
+    setProjectList((prev) =>
+      prev.map((project) => {
+        if (project.id !== selectedCaptureProjectId) return project;
+        return {
+          ...project,
+          checkpoints: [
+            {
+              id: checkpointId,
+              name: targetName,
+              createdAt: new Date().toISOString().slice(0, 10),
+              tasksByMember: Object.fromEntries(
+                project.members.map((member) => [
+                  member.id,
+                  [
+                    {
+                      id: `task-${Math.random().toString(36).slice(2, 10)}`,
+                      text: `Initial task for ${member.name}`,
+                      dueDate: null,
+                      completed: false,
+                    },
+                  ],
+                ])
+              ),
+            },
+            ...project.checkpoints,
+          ],
+        };
+      })
     );
+
+    const target = { projectId: project.id, checkpointId, checkpointName: targetName };
+    setCaptureCreatedTarget(target);
+    return target;
+  };
+
+  const openEditFromCapture = () => {
+    const createdCheckpoint = createCheckpointFromCapture();
+    if (!createdCheckpoint) return;
+
+    closeCapturePopup();
+    router.push(`/edit/${createdCheckpoint.projectId}/${createdCheckpoint.checkpointId}`);
   };
 
   return (
@@ -126,36 +198,12 @@ export default function Home() {
         <div className="mx-auto max-w-3xl">
           <h1 className="mb-6 text-5xl font-medium text-slate-900">Project List</h1>
 
-          <div className="space-y-4">
-            {projectList.map((project) => {
-              const checkpointsCount = project.checkpoints.length;
-              const label = checkpointsCount === 1 ? "assessment" : "assessments";
-
-              return (
-                <article
-                  key={project.id}
-                  className="rounded-md bg-[#127ea9] px-5 py-4 text-white shadow-sm"
-                  onClick={() => {
-                    const checkpointId = project.checkpoints[0]?.id;
-                    if (checkpointId) {
-                      router.push(`/edit/${project.id}/${checkpointId}`);
-                    }
-                  }}
-                  role="button"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h2 className="text-3xl font-semibold leading-tight">{project.name}</h2>
-                      <p className="mt-3 text-xs text-sky-100">
-                        {checkpointsCount} {label}
-                      </p>
-                    </div>
-                    <span className="text-xl leading-none text-sky-100">⋮</span>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+          <ProjectCheckpointExplorer
+            projects={projectList}
+            onOpenCheckpointEdit={(projectId, checkpointId) =>
+              router.push(`/edit/${projectId}/${checkpointId}`)
+            }
+          />
         </div>
       </main>
 

@@ -1,29 +1,47 @@
+"use client";
+
 import { EditCheckpointPage } from "@/components/editPage/editCheckpointPage";
-import { initialProjectList } from "@/projectData/homeProjectData";
-import type { Checkpoint } from "@/types/projectTypes";
+import {
+  PROJECTS_STORAGE_KEY,
+  loadProjectsFromStorage,
+  saveProjectsToStorage,
+} from "@/projectData/projectPersistence";
+import type { Checkpoint, Project, Task } from "@/types/projectTypes";
 import Link from "next/link";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-type EditPageProps = {
-  params: Promise<{ projectId: string; checkpointId: string }>;
-  searchParams: Promise<{ checkpointName?: string }>;
-};
+export default function EditPage() {
+  const params = useParams<{ projectId: string; checkpointId: string }>();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-export default async function EditPage({ params, searchParams }: EditPageProps) {
-  const { projectId, checkpointId } = await params;
-  const { checkpointName } = await searchParams;
+  const [projects, setProjects] = useState<Project[]>(() => loadProjectsFromStorage());
 
-  const project = initialProjectList.find((candidate) => candidate.id === projectId);
+  useEffect(() => {
+    const syncFromStorage = (event: StorageEvent) => {
+      if (event.key === PROJECTS_STORAGE_KEY) {
+        setProjects(loadProjectsFromStorage());
+      }
+    };
+    window.addEventListener("storage", syncFromStorage);
+    return () => window.removeEventListener("storage", syncFromStorage);
+  }, []);
+
+  const projectId = params?.projectId ?? "";
+  const checkpointId = params?.checkpointId ?? "";
+  const project = projects.find((candidate) => candidate.id === projectId);
   const checkpoint = project?.checkpoints.find((candidate) => candidate.id === checkpointId);
 
-  const draftCheckpoint: Checkpoint | null =
-    project && checkpointId === "draft"
-      ? {
-          id: "draft",
-          name: checkpointName?.trim() || "New Checkpoint",
-          createdAt: new Date().toISOString().slice(0, 10),
-          tasksByMember: Object.fromEntries(project.members.map((member) => [member.id, []])),
-        }
-      : null;
+  const draftCheckpoint = useMemo<Checkpoint | null>(() => {
+    if (!project || checkpointId !== "draft") return null;
+    return {
+      id: "draft",
+      name: searchParams.get("checkpointName")?.trim() || "New Checkpoint",
+      createdAt: new Date().toISOString().slice(0, 10),
+      tasksByMember: Object.fromEntries(project.members.map((member) => [member.id, []])),
+    };
+  }, [checkpointId, project, searchParams]);
 
   const resolvedCheckpoint = checkpoint ?? draftCheckpoint;
 
@@ -46,5 +64,45 @@ export default async function EditPage({ params, searchParams }: EditPageProps) 
     );
   }
 
-  return <EditCheckpointPage project={project} checkpoint={resolvedCheckpoint} />;
+  const handleFinishEdit = (tasksByMember: Record<string, Task[]>) => {
+    const nextProjects = projects.map((candidateProject) => {
+      if (candidateProject.id !== project.id) return candidateProject;
+
+      if (checkpointId === "draft") {
+        return {
+          ...candidateProject,
+          checkpoints: [
+            {
+              id: `checkpoint-${Math.random().toString(36).slice(2, 10)}`,
+              name: resolvedCheckpoint.name,
+              createdAt: resolvedCheckpoint.createdAt,
+              tasksByMember,
+            },
+            ...candidateProject.checkpoints,
+          ],
+        };
+      }
+
+      return {
+        ...candidateProject,
+        checkpoints: candidateProject.checkpoints.map((candidateCheckpoint) =>
+          candidateCheckpoint.id === checkpointId
+            ? { ...candidateCheckpoint, tasksByMember }
+            : candidateCheckpoint
+        ),
+      };
+    });
+
+    setProjects(nextProjects);
+    saveProjectsToStorage(nextProjects);
+    router.push("/");
+  };
+
+  return (
+    <EditCheckpointPage
+      project={project}
+      checkpoint={resolvedCheckpoint}
+      onFinishEdit={handleFinishEdit}
+    />
+  );
 }
