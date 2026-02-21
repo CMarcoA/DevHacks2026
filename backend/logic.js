@@ -31,7 +31,7 @@ export async function saveJson(input) {
       })
 
     // if the folder is empty then just use 1 else the found highest number + 1
-    const nextId = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
+    const nextId =  Math.max(...numbers) + 1;
     
     json.projectId = nextId;
     const output = `project${nextId}.json`;
