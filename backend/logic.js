@@ -4,8 +4,10 @@ import fs from 'fs';
 import path from 'path';
 import processInput from './openai/processInput.js'
 
-// this is the function that will take the input file and put into the AI 
-// to be processed and save as a json file with project(projectID).json name
+/*
+ this is the function that will take the input file and put into the AI 
+ to be processed and save as a json file with project(projectID).json name
+*/ 
 export async function saveJson(input) {
   //const inputPath = path.join(process.cwd(), 'input');
   const outputPath = path.join(process.cwd(), 'output');
@@ -16,8 +18,23 @@ export async function saveJson(input) {
     console.log(`Processing: ${input}`);
     const audioStream = fs.createReadStream(input);
     const json = await processInput(audioStream);
-    const id = json.projectId;
-    const output = `project${id}.json`;
+    const files = fs.readdirSync(outputPath);
+    
+    /* 
+    this part is for when user didn't specify the project number. by default the AI will defaulted to project id 1 if the project number
+    is not specified. so my idea is read the file names in the output folder and extract the number because i saved it as project1, project2, etc
+    */
+    const numbers = files
+      .map(f => {
+        const match = f.match(/project(\d+)\.json/); // use regex to look for the digit in the file name
+        return parseInt(match[1]); 
+      })
+
+    // if the folder is empty then just use 1 else the found highest number + 1
+    const nextId = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
+    
+    json.projectId = nextId;
+    const output = `project${nextId}.json`;
     fs.writeFileSync(
       path.join(outputPath, output),
       JSON.stringify(json, null, 2)
@@ -29,9 +46,7 @@ export async function saveJson(input) {
 }
 
 /*
- this is the function that will overwrite any task for each member
- if the user wishes to
-
+ this is the function that will overwrite any task for each member if the user wishes to
  takes the argument of the projectID , the name of the member in that project and the new task that will be assigned
 */ 
 
@@ -66,4 +81,4 @@ export function overwriteTask(projectId, memberName, newTodos) {
   }
 }
 
-overwriteTask(1, "Marco", "buy food for patrick");
+//overwriteTask(1, "Marco", "buy food for patrick");

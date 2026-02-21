@@ -1,5 +1,5 @@
-import { projectModel } from "@/backend/data/project.js";
-import { processInput } from "@/backend/openai/processInput.js";
+//import { projectModel } from "@/backend/data/project.js";
+import { saveJson } from "@/backend/logic.js";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -13,10 +13,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing audio file." }, { status: 400 });
     }
 
-    const rawAiData = await processInput(file);
-    const cleanProject = projectModel(rawAiData);
+    const rawAiData = await saveJson(file);
+    //const cleanProject = projectModel(rawAiData);
 
-    return NextResponse.json(cleanProject);
+    //return NextResponse.json(cleanProject);
   } catch (error) {
     console.error("process-voice route failed:", error);
     const message =
