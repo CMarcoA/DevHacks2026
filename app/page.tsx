@@ -3,6 +3,8 @@
 import { CapturePopupPhase1 } from "@/components/capturePage/capturePopupPhase1";
 import { CapturePopupPhase2 } from "@/components/capturePage/capturePopupPhase2";
 import { CapturePopupPhase3 } from "@/components/capturePage/capturePopupPhase3";
+import { DeleteCheckpointPopup } from "@/components/homePage/deleteCheckpointPopup";
+import { DeleteProjectPopup } from "@/components/homePage/deleteProjectPopup";
 import { NewProjectPopup } from "@/components/homePage/newProjectPopup";
 import { ProjectCheckpointExplorer } from "@/components/homePage/projectCheckpointExplorer";
 import { AppSidebar } from "@/components/ui/appSidebar";
@@ -20,6 +22,11 @@ export default function Home() {
   const router = useRouter();
   const [projectList, setProjectList] = useState<Project[]>(() => loadProjectsFromStorage());
   const [newProjectPopupOpen, setNewProjectPopupOpen] = useState(false);
+  const [deleteProjectPopupOpen, setDeleteProjectPopupOpen] = useState(false);
+  const [checkpointDeleteTarget, setCheckpointDeleteTarget] = useState<{
+    projectId: string;
+    checkpointId: string;
+  } | null>(null);
   const [captureModalOpen, setCaptureModalOpen] = useState(false);
   const [capturePhase, setCapturePhase] = useState<1 | 2 | 3>(1);
   const [selectedCaptureProjectId, setSelectedCaptureProjectId] = useState("");
@@ -69,6 +76,33 @@ export default function Home() {
     };
 
     setProjectList((prev) => [project, ...prev]);
+  };
+
+  const handleDeleteProject = (projectId: string) => {
+    setProjectList((prev) => prev.filter((project) => project.id !== projectId));
+    if (selectedCaptureProjectId === projectId) {
+      setSelectedCaptureProjectId("");
+    }
+  };
+
+  const handleDeleteCheckpoint = (projectId: string, checkpointId: string) => {
+    setCheckpointDeleteTarget({ projectId, checkpointId });
+  };
+
+  const confirmDeleteCheckpoint = () => {
+    if (!checkpointDeleteTarget) return;
+    setProjectList((prev) =>
+      prev.map((project) => {
+        if (project.id !== checkpointDeleteTarget.projectId) return project;
+        return {
+          ...project,
+          checkpoints: project.checkpoints.filter(
+            (checkpoint) => checkpoint.id !== checkpointDeleteTarget.checkpointId
+          ),
+        };
+      })
+    );
+    setCheckpointDeleteTarget(null);
   };
 
   const openCapturePopup = () => {
@@ -186,6 +220,7 @@ export default function Home() {
     <div className="flex min-h-screen bg-[#f4f6f8] text-slate-900">
       <AppSidebar
         onNewProject={() => setNewProjectPopupOpen(true)}
+        onDeleteProject={() => setDeleteProjectPopupOpen(true)}
         onCapture={openCapturePopup}
         teammateCount={teammateList.length}
       />
@@ -203,6 +238,7 @@ export default function Home() {
             onOpenCheckpointEdit={(projectId, checkpointId) =>
               router.push(`/edit/${projectId}/${checkpointId}`)
             }
+            onDeleteCheckpoint={handleDeleteCheckpoint}
           />
         </div>
       </main>
@@ -211,6 +247,17 @@ export default function Home() {
         open={newProjectPopupOpen}
         onClose={() => setNewProjectPopupOpen(false)}
         onCreateProject={handleCreateProject}
+      />
+      <DeleteProjectPopup
+        open={deleteProjectPopupOpen}
+        onClose={() => setDeleteProjectPopupOpen(false)}
+        projects={projectList}
+        onDeleteProject={handleDeleteProject}
+      />
+      <DeleteCheckpointPopup
+        open={Boolean(checkpointDeleteTarget)}
+        onClose={() => setCheckpointDeleteTarget(null)}
+        onConfirm={confirmDeleteCheckpoint}
       />
       <CapturePopupPhase1
         open={captureModalOpen && capturePhase === 1}
