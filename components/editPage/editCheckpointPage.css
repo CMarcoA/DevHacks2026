@@ -1,0 +1,22 @@
+.edit-page-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f6f8;
+  color: #0f172a;
+}
+
+.edit-page-main {
+  width: 100%;
+  padding: 2.5rem 4rem;
+}
+
+.edit-page-header-row {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.edit-page-user-text {
+  font-size: 0.875rem;
+  color: #475569;
+}

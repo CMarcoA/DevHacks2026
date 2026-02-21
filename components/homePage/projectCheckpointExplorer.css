@@ -1,0 +1,93 @@
+.project-explorer-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.project-explorer-card {
+  border-radius: 0.5rem;
+  background: #127ea9;
+  color: #ffffff;
+  padding: 1rem;
+}
+
+.project-explorer-card-header {
+  width: 100%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.project-explorer-title {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.project-explorer-count {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #dbeafe;
+}
+
+.project-explorer-chevron {
+  font-size: 1.25rem;
+  color: #dbeafe;
+}
+
+.project-explorer-checkpoints {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.project-explorer-checkpoint {
+  border-radius: 0.5rem;
+  background: #0f6e94;
+  padding: 0.5rem;
+}
+
+.project-explorer-checkpoint-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.project-explorer-checkpoint-toggle {
+  flex: 1;
+  border: none;
+  border-radius: 9999px;
+  background: #d1d5db;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  font-size: 2rem;
+  text-align: left;
+}
+
+.project-explorer-open-edit {
+  border: none;
+  border-radius: 0.375rem;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+}
+
+.project-explorer-people {
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.project-explorer-empty {
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 20%);
+  padding: 0.75rem;
+  font-size: 0.875rem;
+}

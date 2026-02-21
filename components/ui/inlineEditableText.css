@@ -1,0 +1,26 @@
+.inline-editable-input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+  background: #ffffff;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.inline-editable-input:focus {
+  box-shadow: 0 0 0 2px #127ea9;
+}
+
+.inline-editable-button {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 0.875rem;
+  color: #0f172a;
+}
+
+.inline-editable-button:hover {
+  text-decoration: underline;
+}

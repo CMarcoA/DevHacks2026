@@ -1,7 +1,6 @@
 
 import { OpenAI } from 'openai';
 
-
 export default async function processInput(audioFile) {
   const openai = new OpenAI();
   
