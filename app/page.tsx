@@ -18,6 +18,74 @@ import type { Member, NewProjectInput, Project } from "@/types/projectTypes";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+type AiCheckpoint = {
+  assignedTo?: string;
+  todos?: unknown[];
+};
+
+type CaptureAiPayload = {
+  checkpoints?: AiCheckpoint[];
+} | null;
+
+const normalizeTokens = (value: string): string[] =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+
+const editDistance = (a: string, b: string): number => {
+  const rows = a.length + 1;
+  const cols = b.length + 1;
+  const dp = Array.from({ length: rows }, () => Array<number>(cols).fill(0));
+
+  for (let i = 0; i < rows; i += 1) dp[i][0] = i;
+  for (let j = 0; j < cols; j += 1) dp[0][j] = j;
+
+  for (let i = 1; i < rows; i += 1) {
+    for (let j = 1; j < cols; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return dp[a.length][b.length];
+};
+
+const tokensLikelyMatch = (left: string, right: string): boolean => {
+  if (left === right) return true;
+  if (left.includes(right) || right.includes(left)) return true;
+  if (left.length >= 4 && right.length >= 4 && editDistance(left, right) <= 1) return true;
+  return false;
+};
+
+const namesLikelyMatch = (memberName: string, assignedTo: string): boolean => {
+  const memberTokens = normalizeTokens(memberName);
+  const assignedTokens = normalizeTokens(assignedTo);
+  if (!memberTokens.length || !assignedTokens.length) return false;
+
+  const memberJoined = memberTokens.join(" ");
+  const assignedJoined = assignedTokens.join(" ");
+  if (memberJoined === assignedJoined) return true;
+  if (memberJoined.includes(assignedJoined) || assignedJoined.includes(memberJoined)) return true;
+
+  const matchedMemberTokens = memberTokens.filter((memberToken) =>
+    assignedTokens.some((assignedToken) => tokensLikelyMatch(memberToken, assignedToken))
+  ).length;
+  const matchedAssignedTokens = assignedTokens.filter((assignedToken) =>
+    memberTokens.some((memberToken) => tokensLikelyMatch(memberToken, assignedToken))
+  ).length;
+
+  if (matchedMemberTokens === 0 || matchedAssignedTokens === 0) return false;
+
+  const memberCoverage = matchedMemberTokens / memberTokens.length;
+  const assignedCoverage = matchedAssignedTokens / assignedTokens.length;
+  return memberCoverage >= 0.5 || assignedCoverage >= 0.5;
+};
+
 export default function Home() {
   const router = useRouter();
   const [projectList, setProjectList] = useState<Project[]>(() => loadProjectsFromStorage());
@@ -32,6 +100,9 @@ export default function Home() {
   const [selectedCaptureProjectId, setSelectedCaptureProjectId] = useState("");
   const [captureCheckpointName, setCaptureCheckpointName] = useState("");
   const [captureAudioBlob, setCaptureAudioBlob] = useState<Blob | null>(null);
+  const [captureAiData, setCaptureAiData] = useState<CaptureAiPayload>(null);
+  const [captureOutputFile, setCaptureOutputFile] = useState<string | null>(null);
+  const [isCaptureProcessing, setIsCaptureProcessing] = useState(false);
   const [capturedCheckpointName, setCapturedCheckpointName] = useState("");
   const [captureCreatedTarget, setCaptureCreatedTarget] = useState<{
     projectId: string;
@@ -109,6 +180,9 @@ export default function Home() {
     setCapturePhase(1);
     setCaptureModalOpen(true);
     setCaptureAudioBlob(null);
+    setCaptureAiData(null);
+    setCaptureOutputFile(null);
+    setIsCaptureProcessing(false);
     setCaptureCreatedTarget(null);
   };
 
@@ -116,6 +190,9 @@ export default function Home() {
     setCaptureModalOpen(false);
     setCapturePhase(1);
     setCaptureAudioBlob(null);
+    setCaptureAiData(null);
+    setCaptureOutputFile(null);
+    setIsCaptureProcessing(false);
     setCapturedCheckpointName("");
     setCaptureCreatedTarget(null);
   };
@@ -125,6 +202,7 @@ export default function Home() {
     if (!blobToSave) return;
 
     setCapturePhase(3);
+    setIsCaptureProcessing(true);
 
     const extension = blobToSave.type.includes("mp3") ? "mp3" : "webm";
     const audioFile = new File(
@@ -135,7 +213,21 @@ export default function Home() {
 
     try {
       const formData = new FormData();
+      const selectedProject = projectList.find((project) => project.id === selectedCaptureProjectId);
+      const captureContext = selectedProject
+        ? {
+            projectId: selectedProject.id,
+            projectName: selectedProject.name,
+            teammates: selectedProject.members.map((member) => ({
+              name: member.name,
+              position: member.position,
+            })),
+          }
+        : null;
       formData.append("file", audioFile);
+      if (captureContext) {
+        formData.append("context", JSON.stringify(captureContext));
+      }
 
       const response = await fetch("/api/save-captured-audio", {
         method: "POST",
@@ -151,11 +243,15 @@ export default function Home() {
         throw new Error(message);
       }
 
-      await response.json();
+      const payload = await response.json();
       setCapturedCheckpointName(captureCheckpointName.trim());
+      setCaptureAiData(payload?.aiData ?? null);
+      setCaptureOutputFile(typeof payload?.outputFile === "string" ? payload.outputFile : null);
     } catch (error) {
       console.error("Could not save captured audio:", error);
       alert("Audio was captured but could not be saved into audioFiles.");
+    } finally {
+      setIsCaptureProcessing(false);
     }
   };
 
@@ -173,6 +269,27 @@ export default function Home() {
     if (!targetName) return null;
     const checkpointId = `checkpoint-${Math.random().toString(36).slice(2, 10)}`;
 
+    const aiCheckpoints = Array.isArray(captureAiData?.checkpoints) ? captureAiData.checkpoints : [];
+    const tasksByMember = Object.fromEntries(
+      project.members.map((member) => {
+        const aiMatch = aiCheckpoints.find(
+          (item) =>
+            typeof item?.assignedTo === "string" &&
+            namesLikelyMatch(member.name, item.assignedTo)
+        );
+        const todos = Array.isArray(aiMatch?.todos)
+          ? aiMatch.todos.filter((todo: unknown) => typeof todo === "string")
+          : [];
+        const tasks = todos.map((text: string) => ({
+          id: `task-${Math.random().toString(36).slice(2, 10)}`,
+          text,
+          dueDate: null,
+          completed: false,
+        }));
+        return [member.id, tasks];
+      })
+    );
+
     setProjectList((prev) =>
       prev.map((project) => {
         if (project.id !== selectedCaptureProjectId) return project;
@@ -183,19 +300,8 @@ export default function Home() {
               id: checkpointId,
               name: targetName,
               createdAt: new Date().toISOString().slice(0, 10),
-              tasksByMember: Object.fromEntries(
-                project.members.map((member) => [
-                  member.id,
-                  [
-                    {
-                      id: `task-${Math.random().toString(36).slice(2, 10)}`,
-                      text: `Initial task for ${member.name}`,
-                      dueDate: null,
-                      completed: false,
-                    },
-                  ],
-                ])
-              ),
+              tasksByMember,
+              outputFile: captureOutputFile,
             },
             ...project.checkpoints,
           ],
@@ -285,7 +391,7 @@ export default function Home() {
         open={captureModalOpen && capturePhase === 3}
         onClose={closeCapturePopup}
         onGoToEdit={openEditFromCapture}
-        canGoToEdit={Boolean(selectedCaptureProjectId)}
+        canGoToEdit={Boolean(selectedCaptureProjectId) && !isCaptureProcessing}
       />
     </div>
   );
