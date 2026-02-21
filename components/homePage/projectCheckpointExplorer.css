@@ -79,6 +79,22 @@
   padding: 0.5rem 0.75rem;
 }
 
+.project-explorer-checkpoint-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.project-explorer-delete-checkpoint {
+  border: none;
+  border-radius: 0.375rem;
+  background: #c2410c;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+}
+
 .project-explorer-people {
   margin-top: 0.5rem;
   display: grid;

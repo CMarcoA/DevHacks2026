@@ -8,11 +8,13 @@ import "./projectCheckpointExplorer.css";
 type ProjectCheckpointExplorerProps = {
   projects: Project[];
   onOpenCheckpointEdit?: (projectId: string, checkpointId: string) => void;
+  onDeleteCheckpoint?: (projectId: string, checkpointId: string) => void;
 };
 
 export function ProjectCheckpointExplorer({
   projects,
   onOpenCheckpointEdit,
+  onDeleteCheckpoint,
 }: ProjectCheckpointExplorerProps) {
   const [openProjectId, setOpenProjectId] = useState<string | null>(projects[0]?.id ?? null);
   const [openCheckpointKey, setOpenCheckpointKey] = useState<string | null>(null);
@@ -66,15 +68,26 @@ export function ProjectCheckpointExplorer({
                             <span>{checkpoint.name}</span>
                             <span>{isCheckpointOpen ? "v" : ">"}</span>
                           </button>
-                          {onOpenCheckpointEdit ? (
-                            <button
-                              type="button"
-                              className="project-explorer-open-edit"
-                              onClick={() => onOpenCheckpointEdit(project.id, checkpoint.id)}
-                            >
-                              Open Edit
-                            </button>
-                          ) : null}
+                          <div className="project-explorer-checkpoint-actions">
+                            {onOpenCheckpointEdit ? (
+                              <button
+                                type="button"
+                                className="project-explorer-open-edit"
+                                onClick={() => onOpenCheckpointEdit(project.id, checkpoint.id)}
+                              >
+                                Open Edit
+                              </button>
+                            ) : null}
+                            {onDeleteCheckpoint ? (
+                              <button
+                                type="button"
+                                className="project-explorer-delete-checkpoint"
+                                onClick={() => onDeleteCheckpoint(project.id, checkpoint.id)}
+                              >
+                                Delete
+                              </button>
+                            ) : null}
+                          </div>
                         </div>
 
                         {isCheckpointOpen ? (
