@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import {saveJson} from "../../../backend/logic.js";
+import { saveJson } from "@/backend/logic.js";
 
 export const runtime = "nodejs";
 
@@ -12,9 +12,19 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const file = formData.get("file");
+    const contextRaw = formData.get("context");
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "Missing audio file." }, { status: 400 });
+    }
+
+    let context = null;
+    if (typeof contextRaw === "string" && contextRaw.trim()) {
+      try {
+        context = JSON.parse(contextRaw);
+      } catch {
+        return NextResponse.json({ error: "Invalid context JSON payload." }, { status: 400 });
+      }
     }
 
     const audioFilesDir = path.join(process.cwd(), "audioFiles");
@@ -26,15 +36,19 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     await writeFile(outputPath, Buffer.from(bytes));
 
-    await saveJson(outputPath);
+    const result = await saveJson(outputPath, context);
     
     return NextResponse.json({
       ok: true,
       fileName: safeName,
       storedAt: `audioFiles/${safeName}`,
+      outputFile: result.outputFile,
+      aiData: result.json,
     });
   } catch (error) {
     console.error("save-audio route failed:", error);
-    return NextResponse.json({ error: "Unable to save audio file." }, { status: 500 });
+    const message =
+      error instanceof Error ? error.message : "Unable to save audio file.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

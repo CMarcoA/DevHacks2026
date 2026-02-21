@@ -1,4 +1,3 @@
-import { projectModel } from "@/backend/data/project.js";
 import { processInput } from "@/backend/openai/processInput.js";
 import { NextResponse } from "next/server";
 
@@ -14,9 +13,7 @@ export async function POST(req: Request) {
     }
 
     const rawAiData = await processInput(file);
-    const cleanProject = projectModel(rawAiData);
-
-    return NextResponse.json(cleanProject);
+    return NextResponse.json(rawAiData);
   } catch (error) {
     console.error("process-voice route failed:", error);
     const message =
