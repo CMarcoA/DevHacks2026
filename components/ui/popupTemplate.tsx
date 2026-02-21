@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import styles from "./popupTemplate.module.css";
+import "./popupTemplate.css";
 
 type PopupTemplateProps = {
   open: boolean;
@@ -14,11 +14,11 @@ export function PopupTemplate({ open, title, onClose, children }: PopupTemplateP
   if (!open) return null;
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.panel}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>{title}</h2>
-          <button type="button" onClick={onClose} className={styles.closeButton}>
+    <div className="popup-template-overlay">
+      <div className="popup-template-panel">
+        <div className="popup-template-header">
+          <h2 className="popup-template-title">{title}</h2>
+          <button type="button" onClick={onClose} className="popup-template-close-button">
             x
           </button>
         </div>
