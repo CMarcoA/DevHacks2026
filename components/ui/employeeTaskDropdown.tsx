@@ -10,7 +10,8 @@ type EmployeeTaskDropdownProps = {
   tasks: Task[];
   open: boolean;
   onToggle: () => void;
-  onSaveChanges: (tasks: Task[]) => void;
+  onSaveChanges?: (tasks: Task[]) => void;
+  readOnly?: boolean;
 };
 
 export function EmployeeTaskDropdown({
@@ -19,6 +20,7 @@ export function EmployeeTaskDropdown({
   open,
   onToggle,
   onSaveChanges,
+  readOnly = false,
 }: EmployeeTaskDropdownProps) {
   const [draftTasks, setDraftTasks] = useState<Task[]>(tasks);
 
@@ -55,29 +57,36 @@ export function EmployeeTaskDropdown({
                       completed: !current.completed,
                     }))
                   }
+                  disabled={readOnly}
                   className="employee-dropdown-checkbox"
                 />
-                <InlineEditableText
-                  value={task.text}
-                  onSave={(value) =>
-                    updateTask(task.id, (current) => ({
-                      ...current,
-                      text: value,
-                    }))
-                  }
-                />
+                {readOnly ? (
+                  <span className="employee-dropdown-task-text">{task.text}</span>
+                ) : (
+                  <InlineEditableText
+                    value={task.text}
+                    onSave={(value) =>
+                      updateTask(task.id, (current) => ({
+                        ...current,
+                        text: value,
+                      }))
+                    }
+                  />
+                )}
               </div>
               <p className="employee-dropdown-deadline">deadline: {task.dueDate ?? "--/--/--"}</p>
             </div>
           ))}
 
-          <button
-            type="button"
-            onClick={() => onSaveChanges(draftTasks)}
-            className="employee-dropdown-save-button"
-          >
-            Save changes
-          </button>
+          {!readOnly ? (
+            <button
+              type="button"
+              onClick={() => onSaveChanges?.(draftTasks)}
+              className="employee-dropdown-save-button"
+            >
+              Save changes
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>

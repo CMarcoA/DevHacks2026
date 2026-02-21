@@ -54,6 +54,12 @@
   color: #475569;
 }
 
+.employee-dropdown-task-text {
+  width: 100%;
+  font-size: 0.875rem;
+  color: #0f172a;
+}
+
 .employee-dropdown-save-button {
   width: fit-content;
   border: none;

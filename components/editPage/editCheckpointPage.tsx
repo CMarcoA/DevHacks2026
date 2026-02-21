@@ -4,17 +4,16 @@ import { AppSidebar } from "@/components/ui/appSidebar";
 import { EditingPageBox } from "@/components/ui/editingPageBox";
 import { EmployeeTaskDropdown } from "@/components/ui/employeeTaskDropdown";
 import type { Checkpoint, Project, Task } from "@/types/projectTypes";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import "./editCheckpointPage.css";
 
 type EditCheckpointPageProps = {
   project: Project;
   checkpoint: Checkpoint;
+  onFinishEdit: (tasksByMember: Record<string, Task[]>) => void;
 };
 
-export function EditCheckpointPage({ project, checkpoint }: EditCheckpointPageProps) {
-  const router = useRouter();
+export function EditCheckpointPage({ project, checkpoint, onFinishEdit }: EditCheckpointPageProps) {
   const [openMemberId, setOpenMemberId] = useState<string | null>(null);
   const [tasksByMember, setTasksByMember] = useState<Record<string, Task[]>>(() =>
     JSON.parse(JSON.stringify(checkpoint.tasksByMember))
@@ -32,7 +31,7 @@ export function EditCheckpointPage({ project, checkpoint }: EditCheckpointPagePr
           title={`[EDITING] ${project.name}`}
           checkpointName={checkpoint.name}
           assignmentDate={checkpoint.createdAt}
-          onFinishEdit={() => router.push("/")}
+          onFinishEdit={() => onFinishEdit(tasksByMember)}
         >
           {project.members.map((member) => (
             <EmployeeTaskDropdown
