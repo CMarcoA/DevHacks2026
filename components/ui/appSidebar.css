@@ -21,6 +21,10 @@
   padding: 0.5rem 0.75rem;
 }
 
+.app-sidebar-action-button-delete {
+  background: #c2410c;
+}
+
 .app-sidebar-meta {
   margin-top: 1rem;
   font-size: 0.75rem;
