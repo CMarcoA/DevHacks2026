@@ -30,31 +30,31 @@ LeadSpeaker includes AI transcription and structured extraction features to make
 
 ### 1) Home and Project Management
 
-![Home screen](../pictures/Homescreen.jpg)
+![Home screen](./public/demo/Homescreen.jpg)
 Main dashboard where users can view projects and start core actions.
-![Open project dropdown](../pictures/dropdown_BiggerBangproject.jpg)
+![Open project dropdown](./public/demo/dropdown_BiggerBangproject.jpg)
 Expanded project card showing checkpoints and teammate task sections.
-![Create new project](../pictures/NewProject.jpg)
+![Create new project](./public/demo/NewProject.jpg)
 Popup flow used to create a new project and assign teammates.
-![Delete project flow](../pictures/Deleteproject.jpg)
+![Delete project flow](./public/demo/Deleteproject.jpg)
 Confirmation flow to safely remove a project from the list.
 
 ### 2) Voice Capture Flow
 
-![Capture step 1](../pictures/capturebutton_1.jpg)
+![Capture step 1](./public/demo/capturebutton_1.jpg)
 First capture step where the user selects the target project/checkpoint context.
-![Capture step 2](../pictures/capturebutton_2.jpg)
+![Capture step 2](./public/demo/capturebutton_2.jpg)
 Recording stage where spoken updates are captured from the microphone.
-![Capture step 3](../pictures/capturebutton_3.jpg)
+![Capture step 3](./public/demo/capturebutton_3.jpg)
 Processing stage that sends captured audio for AI transcription and extraction.
 
 ### 3) Milestone and Task Output
 
-![Created milestone](../pictures/capturebutton4_created_milestone.jpg)
+![Created milestone](./public/demo/capturebutton4_created_milestone.jpg)
 Newly created milestone appears in the selected project's checkpoint list.
-![Milestone with assigned tasks](../pictures/capturebutton4_created_milestone_addedTasks.jpg)
+![Milestone with assigned tasks](./public/demo/capturebutton4_created_milestone_addedTasks.jpg)
 Extracted tasks are mapped to teammates and displayed under the milestone.
-![Inline editing and todo updates](../pictures/capturebutton5_Editing_inlineeditor+Todo.jpg)
+![Inline editing and todo updates](./public/demo/capturebutton5_Editing_inlineeditor_Todo.jpg)
 Task text can be reviewed and updated inline for quick corrections.
 
 ## Challenges We Ran Into
