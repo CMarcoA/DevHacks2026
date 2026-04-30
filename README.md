@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LeadSpeaker
 
-## Getting Started
+LeadSpeaker is a checkpoint management app where team leads and managers create projects, track teammates, and convert spoken updates into structured task lists with AI.
 
-First, run the development server:
+## Inspiration
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Have you ever gotten frustrated about missing tasks or not listing what to do? Many people naturally plan while speaking, because saying ideas out loud is often easier and faster than writing everything down. LeadSpeaker uses AI to convert what you say into structured tasks, helping teams capture plans without losing details.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What It Does
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+LeadSpeaker is a checkpoint management app where team leads and managers can create projects with teammate lists, capture voice updates, and generate tasks/to-do items for selected checkpoints.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+LeadSpeaker includes AI transcription and structured extraction features to make task planning easier and less tedious.
 
-## Learn More
+## How We Built It
 
-To learn more about Next.js, take a look at the following resources:
+- Frontend: Next.js
+- Backend: Node.js + OpenAI Node SDK
+- Voice capture: `MediaRecorder`
+- Data output: JSON file I/O
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## What We Learned
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Linking records to the frontend is not easy when incoming data is unpredictable
+- Naming and string normalization are critical when storing user-derived input
+- Coming from React Native, we learned a lot about Next.js server/client boundaries and routing
+- AI integration is powerful, but reliability and mapping logic are essential
 
-## Deploy on Vercel
+## Demo (Screenshots)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 1) Home and Project Management
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+![Home screen](../pictures/Homescreen.jpg)
+Main dashboard where users can view projects and start core actions.
+![Open project dropdown](../pictures/dropdown_BiggerBangproject.jpg)
+Expanded project card showing checkpoints and teammate task sections.
+![Create new project](../pictures/NewProject.jpg)
+Popup flow used to create a new project and assign teammates.
+![Delete project flow](../pictures/Deleteproject.jpg)
+Confirmation flow to safely remove a project from the list.
+
+### 2) Voice Capture Flow
+
+![Capture step 1](../pictures/capturebutton_1.jpg)
+First capture step where the user selects the target project/checkpoint context.
+![Capture step 2](../pictures/capturebutton_2.jpg)
+Recording stage where spoken updates are captured from the microphone.
+![Capture step 3](../pictures/capturebutton_3.jpg)
+Processing stage that sends captured audio for AI transcription and extraction.
+
+### 3) Milestone and Task Output
+
+![Created milestone](../pictures/capturebutton4_created_milestone.jpg)
+Newly created milestone appears in the selected project's checkpoint list.
+![Milestone with assigned tasks](../pictures/capturebutton4_created_milestone_addedTasks.jpg)
+Extracted tasks are mapped to teammates and displayed under the milestone.
+![Inline editing and todo updates](../pictures/capturebutton5_Editing_inlineeditor+Todo.jpg)
+Task text can be reviewed and updated inline for quick corrections.
+
+## Challenges We Ran Into
+
+- Ensuring JSON file writes happen consistently
+- Name mapping issues from transcription variance (extra surnames and slight mismatches)
+- Frontend bugs around checkpoint creation, edit navigation, and strict data flow to storage
+
+## What's Next for LeadSpeaker
+
+- Tighten routing and workflow reliability
+- Make the current program safer and more deployable
+- Keep improving both UI and backend while exploring more useful AI-driven features

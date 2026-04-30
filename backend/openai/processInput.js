@@ -12,6 +12,7 @@ export async function processInput(audioFile, context = null) {
   const teammateLines = teammates
     .map((member) => `- ${member.name}${member.position ? ` (${member.position})` : ""}`)
     .join("\n");
+  // CONTEXT:
   const contextBlock = teammates.length
     ? `Project context:\nprojectId: ${context?.projectId ?? ""}\nprojectName: ${context?.projectName ?? ""}\nTeammates:\n${teammateLines}`
     : "Project context: not provided";
